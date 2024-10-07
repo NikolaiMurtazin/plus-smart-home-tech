@@ -20,18 +20,14 @@ import ru.yandex.practicum.kafka.telemetry.event.HubEventAvro;
 public class HubEventController {
     private final KafkaProducer<String, HubEventAvro> hubEventProducer;
 
-
     @PostMapping("/hubs")
     public void collectHubEvent(@Valid @RequestBody HubEvent event) {
         log.info("Received hub event: {}", event);
 
-        // Преобразование JSON-события в Avro-сообщение
         HubEventAvro avroEvent = convertToAvro(event);
 
-        // Логгируем перед отправкой
         log.debug("Converted Avro hub event: {}", avroEvent);
 
-        // Отправка в Kafka
         ProducerRecord<String, HubEventAvro> record =
                 new ProducerRecord<>(KafkaTopics.TELEMETRY_HUBS_V1, event.getHubId(), avroEvent);
         hubEventProducer.send(record, (metadata, exception) -> {
@@ -45,7 +41,6 @@ public class HubEventController {
     }
 
     private HubEventAvro convertToAvro(HubEvent event) {
-        // Реализуйте преобразование JSON-события в Avro-объект
-        return new HubEventAvro(); // Пример, заполните по необходимости
+        return new HubEventAvro();
     }
 }

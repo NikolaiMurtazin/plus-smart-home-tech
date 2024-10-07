@@ -18,20 +18,16 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 @RequestMapping("/events")
 @Slf4j
 public class SensorEventController {
-
     private final KafkaProducer<String, SensorEventAvro> sensorEventProducer;
 
     @PostMapping("/sensors")
     public void collectSensorEvent(@Valid @RequestBody SensorEvent event) {
         log.info("Received sensor event: {}", event);
 
-        // Преобразование JSON-события в Avro-сообщение
         SensorEventAvro avroEvent = convertToAvro(event);
 
-        // Логгируем перед отправкой
         log.debug("Converted Avro event: {}", avroEvent);
 
-        // Отправка в Kafka
         ProducerRecord<String, SensorEventAvro> record =
                 new ProducerRecord<>(KafkaTopics.TELEMETRY_SENSORS_V1, event.getId(), avroEvent);
         sensorEventProducer.send(record, (metadata, exception) -> {
@@ -45,7 +41,6 @@ public class SensorEventController {
     }
 
     private SensorEventAvro convertToAvro(SensorEvent event) {
-        // Реализуйте преобразование JSON-события в Avro-объект
-        return new SensorEventAvro(); // Пример, заполните по необходимости
+        return new SensorEventAvro();
     }
 }
