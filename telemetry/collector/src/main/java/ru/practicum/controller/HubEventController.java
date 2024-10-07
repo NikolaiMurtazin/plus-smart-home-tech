@@ -22,19 +22,19 @@ public class HubEventController {
 
     @PostMapping("/hubs")
     public void collectHubEvent(@Valid @RequestBody HubEvent event) {
-        log.info("Received hub event: {}", event);
+        log.info("Получено событие от хаба: {}", event);
 
         HubEventAvro avroEvent = convertToAvro(event);
 
-        log.debug("Converted Avro hub event: {}", avroEvent);
+        log.debug("Преобразованное Avro-событие хаба: {}", avroEvent);
 
         ProducerRecord<String, HubEventAvro> record =
                 new ProducerRecord<>(KafkaTopics.TELEMETRY_HUBS_V1, event.getHubId(), avroEvent);
         hubEventProducer.send(record, (metadata, exception) -> {
             if (exception != null) {
-                log.error("Failed to send hub event to Kafka", exception);
+                log.error("Отправка события хаба в Kafka была прервана", exception);
             } else {
-                log.info("Hub event sent to Kafka, topic: {}, partition: {}, offset: {}",
+                log.info("Событие хаба успешно отправлено в Kafka, topic: {}, partition: {}, offset: {}",
                         metadata.topic(), metadata.partition(), metadata.offset());
             }
         });

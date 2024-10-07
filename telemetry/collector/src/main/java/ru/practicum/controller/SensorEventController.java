@@ -22,19 +22,19 @@ public class SensorEventController {
 
     @PostMapping("/sensors")
     public void collectSensorEvent(@Valid @RequestBody SensorEvent event) {
-        log.info("Received sensor event: {}", event);
+        log.info("Получено событие от датчика: {}", event);
 
         SensorEventAvro avroEvent = convertToAvro(event);
 
-        log.debug("Converted Avro event: {}", avroEvent);
+        log.debug("Преобразованное Avro-событие: {}", avroEvent);
 
         ProducerRecord<String, SensorEventAvro> record =
                 new ProducerRecord<>(KafkaTopics.TELEMETRY_SENSORS_V1, event.getId(), avroEvent);
         sensorEventProducer.send(record, (metadata, exception) -> {
             if (exception != null) {
-                log.error("Failed to send sensor event to Kafka", exception);
+                log.error("Отправка в Kafka была прервана", exception);
             } else {
-                log.info("Sensor event sent to Kafka, topic: {}, partition: {}, offset: {}",
+                log.info("Событие датчика успешно отправлено в Kafka, topic: {}, partition: {}, offset: {}",
                         metadata.topic(), metadata.partition(), metadata.offset());
             }
         });
