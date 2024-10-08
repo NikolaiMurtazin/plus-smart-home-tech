@@ -1,16 +1,12 @@
-package ru.practicum.model.hub.scenario.added;
+package ru.practicum.model.hub;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import ru.practicum.model.hub.HubEvent;
-import ru.practicum.model.hub.HubEventType;
-import ru.practicum.model.hub.scenario.added.action.DeviceAction;
-import ru.practicum.model.hub.scenario.added.condition.ScenarioCondition;
 
 import java.util.List;
 
@@ -19,14 +15,15 @@ import java.util.List;
 @ToString(callSuper = true)
 public class ScenarioAddedEvent extends HubEvent {
     @NotBlank
-    @Min(3)
-    @Max(2147483647)
+    @Size(min = 3, message = "Имя сценария должно содержать минимум 3 символа")
     private String name;
 
     @NotEmpty
+    @Valid
     private List<ScenarioCondition> conditions;
 
     @NotEmpty
+    @Valid
     private List<DeviceAction> actions;
 
     @Override

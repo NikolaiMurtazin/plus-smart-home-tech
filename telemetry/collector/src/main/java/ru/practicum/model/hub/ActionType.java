@@ -1,4 +1,4 @@
-package ru.practicum.model.hub.scenario.added.action;
+package ru.practicum.model.hub;
 
 public enum ActionType {
     ACTIVATE,

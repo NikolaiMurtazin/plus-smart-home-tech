@@ -1,21 +1,17 @@
-package ru.practicum.model.hub.scenario.removed;
+package ru.practicum.model.hub;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import ru.practicum.model.hub.HubEvent;
-import ru.practicum.model.hub.HubEventType;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
 public class ScenarioRemovedEvent extends HubEvent {
     @NotBlank
-    @Min(3)
-    @Max(2147483647)
+    @Size(min = 3, message = "Имя сценария должно содержать минимум 3 символа")
     private String name;
 
     @Override

@@ -1,8 +1,20 @@
 package ru.practicum.config;
 
-public class KafkaTopics {
-    public static final String TELEMETRY_SENSORS_V1 = "telemetry.sensors.v1";
-    public static final String TELEMETRY_HUBS_V1 = "telemetry.hubs.v1";
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
-    private KafkaTopics() {}
+@Getter
+@Component
+public class KafkaTopics {
+
+    private final String telemetrySensors;
+    private final String telemetryHubs;
+
+    public KafkaTopics(
+            @Value("${kafka.topics.telemetry-sensors}") String telemetrySensors,
+            @Value("${kafka.topics.telemetry-hubs}") String telemetryHubs) {
+        this.telemetrySensors = telemetrySensors;
+        this.telemetryHubs = telemetryHubs;
+    }
 }

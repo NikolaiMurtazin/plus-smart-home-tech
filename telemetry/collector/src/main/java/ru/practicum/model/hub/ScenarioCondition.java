@@ -1,4 +1,4 @@
-package ru.practicum.model.hub.scenario.added.condition;
+package ru.practicum.model.hub;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

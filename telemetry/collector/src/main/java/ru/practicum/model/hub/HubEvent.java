@@ -6,10 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import ru.practicum.model.hub.device.DeviceAddedEvent;
-import ru.practicum.model.hub.device.DeviceRemovedEvent;
-import ru.practicum.model.hub.scenario.added.ScenarioAddedEvent;
-import ru.practicum.model.hub.scenario.removed.ScenarioRemovedEvent;
 
 import java.time.Instant;
 

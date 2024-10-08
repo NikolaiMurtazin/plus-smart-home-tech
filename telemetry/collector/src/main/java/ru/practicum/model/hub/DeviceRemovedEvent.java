@@ -1,21 +1,16 @@
-package ru.practicum.model.hub.device;
+package ru.practicum.model.hub;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import ru.practicum.model.hub.HubEvent;
-import ru.practicum.model.hub.HubEventType;
 
 @Getter
 @Setter
 @ToString(callSuper = true)
-public class DeviceAddedEvent extends HubEvent {
+public class DeviceRemovedEvent extends HubEvent {
     @NotBlank
     private String id;
-
-    @NotBlank
-    private String deviceType;
 
     @Override
     public HubEventType getType() {
