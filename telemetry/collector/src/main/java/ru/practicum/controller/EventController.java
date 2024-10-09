@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.exeption.NotFoundException;
 import ru.practicum.model.hub.HubEvent;
 import ru.practicum.model.hub.HubEventType;
 import ru.practicum.model.sensor.SensorEvent;
@@ -37,11 +38,10 @@ public class EventController {
         log.info("Получено событие от датчика: {}", event);
 
         SensorEventHandler handler = sensorEventHandlers.get(event.getType());
-        if (handler != null) {
-            handler.handle(event);
-        } else {
-            log.warn("Обработчик для типа события {} не найден", event.getType());
+        if (handler == null) {
+            throw new NotFoundException("Обработчик для типа события " + event.getType() + " не найден");
         }
+        handler.handle(event);
     }
 
     @PostMapping("/hubs")
@@ -49,10 +49,9 @@ public class EventController {
         log.info("Получено событие от хаба: {}", event);
 
         HubEventHandler handler = hubEventHandlers.get(event.getType());
-        if (handler != null) {
-            handler.handle(event);
-        } else {
-            log.warn("Обработчик для типа события {} не найден", event.getType());
+        if (handler == null) {
+            throw new NotFoundException("Обработчик для типа события " + event.getType() + " не найден");
         }
+        handler.handle(event);
     }
 }
