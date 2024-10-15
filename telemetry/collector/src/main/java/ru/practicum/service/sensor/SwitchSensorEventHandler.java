@@ -1,15 +1,14 @@
 package ru.practicum.service.sensor;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.practicum.config.KafkaEventProducer;
 import ru.practicum.config.KafkaTopics;
-import ru.practicum.controller.BaseSensorEventHandler;
-import ru.practicum.model.sensor.SensorEvent;
-import ru.practicum.model.sensor.SensorEventType;
-import ru.practicum.model.sensor.SwitchSensorEvent;
+import ru.practicum.service.BaseSensorEventHandler;
+import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.SwitchSensorEvent;
 import ru.yandex.practicum.kafka.telemetry.event.SwitchSensorAvro;
 
-@Service
+@Component
 public class SwitchSensorEventHandler extends BaseSensorEventHandler<SwitchSensorAvro> {
 
     public SwitchSensorEventHandler(KafkaEventProducer producer, KafkaTopics kafkaTopics) {
@@ -17,16 +16,16 @@ public class SwitchSensorEventHandler extends BaseSensorEventHandler<SwitchSenso
     }
 
     @Override
-    public SensorEventType getMessageType() {
-        return SensorEventType.SWITCH_SENSOR_EVENT;
+    public SensorEventProto.PayloadCase getMessageType() {
+        return SensorEventProto.PayloadCase.SWITCH_SENSOR_EVENT;
     }
 
     @Override
-    protected SwitchSensorAvro mapToAvro(SensorEvent event) {
-        SwitchSensorEvent switchEvent = (SwitchSensorEvent) event;
+    protected SwitchSensorAvro mapToAvro(SensorEventProto event) {
+        SwitchSensorEvent switchEvent = event.getSwitchSensorEvent();
 
         return SwitchSensorAvro.newBuilder()
-                .setState(switchEvent.isState())
+                .setState(switchEvent.getState())
                 .build();
     }
 }

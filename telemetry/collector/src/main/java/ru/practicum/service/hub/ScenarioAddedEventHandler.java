@@ -3,12 +3,11 @@ package ru.practicum.service.hub;
 import org.springframework.stereotype.Service;
 import ru.practicum.config.KafkaEventProducer;
 import ru.practicum.config.KafkaTopics;
-import ru.practicum.controller.BaseHubEventHandler;
-import ru.practicum.model.hub.DeviceAction;
-import ru.practicum.model.hub.ScenarioAddedEvent;
-import ru.practicum.model.hub.HubEvent;
-import ru.practicum.model.hub.HubEventType;
-import ru.practicum.model.hub.ScenarioCondition;
+import ru.practicum.service.BaseHubEventHandler;
+import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
+import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.ScenarioAddedEventProto;
+import ru.yandex.practicum.grpc.telemetry.event.ScenarioConditionProto;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioAddedEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.ScenarioConditionAvro;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceActionAvro;
@@ -23,39 +22,39 @@ public class ScenarioAddedEventHandler extends BaseHubEventHandler<ScenarioAdded
     }
 
     @Override
-    public HubEventType getMessageType() {
-        return HubEventType.SCENARIO_ADDED;
+    public HubEventProto.PayloadCase getMessageType() {
+        return HubEventProto.PayloadCase.SCENARIO_ADDED;
     }
 
     @Override
-    protected ScenarioAddedEventAvro mapToAvro(HubEvent event) {
-        ScenarioAddedEvent scenarioEvent = (ScenarioAddedEvent) event;
+    protected ScenarioAddedEventAvro mapToAvro(HubEventProto event) {
+        ScenarioAddedEventProto scenarioEvent = event.getScenarioAdded();
 
         return ScenarioAddedEventAvro.newBuilder()
                 .setName(scenarioEvent.getName())
                 .setConditions(
-                        scenarioEvent.getConditions().stream()
+                        scenarioEvent.getConditionList().stream()
                                 .map(this::mapConditionToAvro)
                                 .collect(Collectors.toList())
                 )
                 .setActions(
-                        scenarioEvent.getActions().stream()
+                        scenarioEvent.getActionList().stream()
                                 .map(this::mapActionToAvro)
                                 .collect(Collectors.toList())
                 )
                 .build();
     }
 
-    private ScenarioConditionAvro mapConditionToAvro(ScenarioCondition condition) {
+    private ScenarioConditionAvro mapConditionToAvro(ScenarioConditionProto condition) {
         return ScenarioConditionAvro.newBuilder()
                 .setSensorId(condition.getSensorId())
                 .setType(ru.yandex.practicum.kafka.telemetry.event.ConditionTypeAvro.valueOf(condition.getType().name()))
                 .setOperation(ru.yandex.practicum.kafka.telemetry.event.ConditionOperationAvro.valueOf(condition.getOperation().name()))
-                .setValue(condition.getValue())
+                .setValue(condition.getBoolValue())
                 .build();
     }
 
-    private DeviceActionAvro mapActionToAvro(DeviceAction action) {
+    private DeviceActionAvro mapActionToAvro(DeviceActionProto action) {
         return DeviceActionAvro.newBuilder()
                 .setSensorId(action.getSensorId())
                 .setType(ru.yandex.practicum.kafka.telemetry.event.ActionTypeAvro.valueOf(action.getType().name()))

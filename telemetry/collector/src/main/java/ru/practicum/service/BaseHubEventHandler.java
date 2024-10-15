@@ -1,11 +1,11 @@
-package ru.practicum.controller;
+package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.specific.SpecificRecordBase;
 import ru.practicum.config.KafkaEventProducer;
 import ru.practicum.config.KafkaTopics;
-import ru.practicum.model.hub.HubEvent;
+import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -14,14 +14,14 @@ public abstract class BaseHubEventHandler<T extends SpecificRecordBase> implemen
     protected final KafkaEventProducer producer;
     protected final KafkaTopics kafkaTopics;
 
-    protected abstract T mapToAvro(HubEvent event);
+    protected abstract T mapToAvro(HubEventProto event);
 
     @Override
-    public void handle(HubEvent event) {
-        T avroEvent = mapToAvro(event);
+    public void handle(HubEventProto event) {
+        T protoEvent = mapToAvro(event);
         String topic = kafkaTopics.getTelemetryHubs();
 
         log.info("Отправка события {} в топик {}", getMessageType(), topic);
-        producer.send(topic, event.getHubId(), avroEvent);
+        producer.send(topic, event.getHubId(), protoEvent);
     }
 }
