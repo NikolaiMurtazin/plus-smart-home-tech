@@ -3,83 +3,123 @@ package ru.yandex.practicum.service;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import ru.yandex.practicum.config.KafkaTopics;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
+import ru.yandex.practicum.modul.StateStorage;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class AggregationStarter {
 
-    private final KafkaProducer<String, SensorsSnapshotAvro> producer;
     private final KafkaConsumer<String, SensorEventAvro> consumer;
-    private final AggregatorService aggregatorService;
+    private final KafkaProducer<String, SensorsSnapshotAvro> producer;
+    private final KafkaTopics kafkaTopics;
 
-    @Value("${kafka.topics.telemetry-sensors}")
-    private String telemetrySensors;
-
-    @Value("${kafka.topic.telemetry-snapshots}")
-    private String telemetrySnapshots;
+    private final StateStorage stateStorage = new StateStorage();
 
     public void start() {
         try {
-            consumer.subscribe(Collections.singletonList(telemetrySensors));
-            log.info("Подписались на топик: {}", telemetrySensors);
+            consumer.subscribe(Collections.singletonList(kafkaTopics.getTelemetrySensors()));
+
+            log.info("Сервис агрегации запущен и подписан на топик [{}]", kafkaTopics.getTelemetrySensors());
 
             while (true) {
                 ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(100));
-
-                if (records.isEmpty()) {
-                    continue;
-                }
-
                 for (ConsumerRecord<String, SensorEventAvro> record : records) {
                     SensorEventAvro event = record.value();
-
-                    aggregatorService.updateState(event).ifPresent(snapshot -> {
-                        try {
-                            producer.send(new ProducerRecord<>(telemetrySnapshots, snapshot.getHubId(), snapshot), (metadata, exception) -> {
-                                if (exception != null) {
-                                    log.error("Ошибка при отправке снапшота в Kafka: {}", exception.getMessage());
-                                    throw new RuntimeException("Ошибка при отправке сообщения в Kafka", exception);
-                                }
-                            });
-                            log.info("Отправлен снапшот для хаба {} в топик {}", snapshot.getHubId(), telemetrySnapshots);
-                        } catch (Exception e) {
-                            log.error("Ошибка при отправке снапшота в топик", e);
-                            throw new RuntimeException("Ошибка отправки сообщения в Kafka", e);
-                        }
-                    });
+                    processEvent(event);
                 }
-
-                try {
-                    consumer.commitSync();
-                } catch (Exception e) {
-                    log.error("Ошибка при коммите смещений", e);
-                    throw new RuntimeException("Ошибка при коммите смещений в Kafka", e);
-                }
+                consumer.commitAsync();
             }
+
+        } catch (WakeupException ignored) {
+            log.info("Получен сигнал остановки агрегации.");
         } catch (Exception e) {
-            log.error("Ошибка при обработке событий от датчиков", e);
-            throw new RuntimeException("Ошибка при работе с Kafka", e);
+            log.error("Ошибка во время обработки событий от датчиков", e);
         } finally {
             try {
+                consumer.commitSync();
                 producer.flush();
-                producer.close();
+            } finally {
+                log.info("Закрываем консьюмер");
                 consumer.close();
-            } catch (Exception e) {
-                log.error("Ошибка при закрытии продюсера или консьюмера", e);
-                throw new RuntimeException("Ошибка при закрытии Kafka продюсера или консьюмера", e);
+                log.info("Закрываем продюсер");
+                producer.close();
             }
         }
+    }
+
+    private void processEvent(SensorEventAvro event) {
+        Optional<SensorsSnapshotAvro> updatedSnapshot = updateState(event);
+        updatedSnapshot.ifPresent(this::sendSnapshot);
+    }
+
+    private Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
+        String hubId = event.getHubId();
+        String sensorId = event.getId();
+        long eventTimestamp = event.getTimestamp();
+
+        SensorsSnapshotAvro snapshot = stateStorage.getSnapshot(hubId);
+
+        if (snapshot == null) {
+            snapshot = SensorsSnapshotAvro.newBuilder()
+                    .setHubId(hubId)
+                    .setTimestamp(Instant.ofEpochSecond(eventTimestamp))
+                    .setSensorsState(new HashMap<>())
+                    .build();
+        }
+
+        SensorStateAvro oldState = snapshot.getSensorsState().get(sensorId);
+
+        if (oldState != null
+                && !oldState.getTimestamp().isBefore(Instant.ofEpochSecond(event.getTimestamp()))
+                && oldState.getData().equals(event.getPayload())) {
+            return Optional.empty();
+        }
+
+        SensorStateAvro newState = SensorStateAvro.newBuilder()
+                .setTimestamp(Instant.ofEpochSecond(eventTimestamp))
+                .setData(event.getPayload())
+                .build();
+
+        snapshot.getSensorsState().put(sensorId, newState);
+        snapshot.setTimestamp(Instant.ofEpochSecond(eventTimestamp));
+
+        stateStorage.updateSnapshot(hubId, snapshot);
+
+        return Optional.of(snapshot);
+    }
+
+    private void sendSnapshot(SensorsSnapshotAvro snapshot) {
+        ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(
+                kafkaTopics.getTelemetrySnapshots(), snapshot.getHubId(), snapshot);
+
+        producer.send(record, (metadata, exception) -> {
+            if (exception != null) {
+                log.error("Ошибка при отправке снапшота в Kafka", exception);
+            } else {
+                log.info("Снапшот отправлен в Kafka, hubId: {}", snapshot.getHubId());
+            }
+        });
+    }
+
+    public void shutdown() {
+        consumer.wakeup();
     }
 }

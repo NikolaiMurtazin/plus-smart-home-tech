@@ -1,4 +1,4 @@
-package ru.yandex.practicum.kafka.config;
+package ru.yandex.practicum.config;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "kafka.topics")
 public class KafkaTopics {
-
     private String telemetrySensors;
-    private String telemetryHubs;
-
+    private String telemetrySnapshots;
 }

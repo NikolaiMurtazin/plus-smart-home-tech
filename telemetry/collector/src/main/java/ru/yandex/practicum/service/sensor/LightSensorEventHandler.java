@@ -1,8 +1,8 @@
 package ru.yandex.practicum.service.sensor;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.kafka.config.KafkaEventProducer;
-import ru.yandex.practicum.kafka.config.KafkaTopics;
+import ru.yandex.practicum.config.KafkaEventProducer;
+import ru.yandex.practicum.config.KafkaTopics;
 import ru.yandex.practicum.service.BaseSensorEventHandler;
 import ru.yandex.practicum.grpc.telemetry.event.LightSensorEvent;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;

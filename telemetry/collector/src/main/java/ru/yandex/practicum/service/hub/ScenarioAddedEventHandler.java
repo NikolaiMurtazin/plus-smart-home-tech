@@ -1,8 +1,8 @@
 package ru.yandex.practicum.service.hub;
 
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.kafka.config.KafkaEventProducer;
-import ru.yandex.practicum.kafka.config.KafkaTopics;
+import ru.yandex.practicum.config.KafkaEventProducer;
+import ru.yandex.practicum.config.KafkaTopics;
 import ru.yandex.practicum.service.BaseHubEventHandler;
 import ru.yandex.practicum.grpc.telemetry.event.DeviceActionProto;
 import ru.yandex.practicum.grpc.telemetry.event.HubEventProto;
