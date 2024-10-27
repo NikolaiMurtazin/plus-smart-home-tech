@@ -1,4 +1,4 @@
-package ru.yandex.practicum.config;
+package ru.yandex.practicum.deserializer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +16,17 @@ import org.apache.kafka.common.serialization.Deserializer;
 public class BaseAvroDeserializer<T extends SpecificRecordBase> implements Deserializer<T> {
     private final Schema schema;
     private final DecoderFactory decoderFactory = DecoderFactory.get();
-    private final DatumReader<T> reader = new SpecificDatumReader<>(schema);
+    private final DatumReader<T> reader;
+
+    public BaseAvroDeserializer(Schema schema) {
+        this.schema = schema;
+        this.reader = new SpecificDatumReader<>(schema);
+    }
 
     @Override
     public T deserialize(String topic, byte[] data) {
         if (data == null) {
+            log.warn("Получены null данные для десериализации из топика [{}]", topic);
             return null;
         }
         try {
