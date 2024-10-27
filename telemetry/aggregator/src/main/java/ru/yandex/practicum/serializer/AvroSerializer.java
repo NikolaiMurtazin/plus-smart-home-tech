@@ -1,14 +1,4 @@
-package ru.yandex.practicum.config;
-
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.BinaryEncoder;
-import org.apache.avro.io.DatumWriter;
-import org.apache.avro.io.EncoderFactory;
-import org.apache.avro.specific.SpecificDatumWriter;
-import org.apache.kafka.common.serialization.Serializer;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+package ru.yandex.practicum.serializer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.io.BinaryEncoder;
@@ -23,6 +13,7 @@ import java.io.IOException;
 
 @Slf4j
 public class AvroSerializer<T extends SpecificRecordBase> implements Serializer<T> {
+
     @Override
     public byte[] serialize(String topic, T data) {
         if (data == null) {
