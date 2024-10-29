@@ -1,5 +1,6 @@
 package ru.yandex.practicum.config;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -12,19 +13,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@RequiredArgsConstructor
 public class KafkaProducerConfig {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
-
-    @Value("${spring.kafka.producer.key-serializer}")
-    private String keySerializer;
+    private final KafkaSettings kafkaSettings;
 
     @Bean
     public KafkaProducer<String, SpecificRecordBase> kafkaProducer() {
         Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,keySerializer);
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaSettings.getBootstrapServers());
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,kafkaSettings.getProducerKeySerializer());
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class);
         return new KafkaProducer<>(configProps);
     }

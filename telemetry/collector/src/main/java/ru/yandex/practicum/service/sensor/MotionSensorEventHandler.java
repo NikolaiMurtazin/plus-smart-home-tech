@@ -2,7 +2,7 @@ package ru.yandex.practicum.service.sensor;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.config.KafkaEventProducer;
-import ru.yandex.practicum.config.KafkaTopics;
+import ru.yandex.practicum.config.KafkaSettings;
 import ru.yandex.practicum.service.BaseSensorEventHandler;
 import ru.yandex.practicum.grpc.telemetry.event.MotionSensorEvent;
 import ru.yandex.practicum.grpc.telemetry.event.SensorEventProto;
@@ -11,7 +11,7 @@ import ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro;
 @Component
 public class MotionSensorEventHandler extends BaseSensorEventHandler<MotionSensorAvro> {
 
-    public MotionSensorEventHandler(KafkaEventProducer producer, KafkaTopics kafkaTopics) {
+    public MotionSensorEventHandler(KafkaEventProducer producer, KafkaSettings kafkaTopics) {
         super(producer, kafkaTopics);
     }
 

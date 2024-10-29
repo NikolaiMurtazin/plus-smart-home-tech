@@ -18,10 +18,9 @@ public class SnapshotProcessor implements Runnable {
     @Override
     public void run() {
         log.info("Snapshot processor started");
-        // Цикл для регулярного запуска обработки снапшотов
         while (true) {
             try {
-                Thread.sleep(5000); // задержка для демонстрации
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 log.error("SnapshotProcessor interrupted", e);
                 Thread.currentThread().interrupt();
@@ -29,7 +28,8 @@ public class SnapshotProcessor implements Runnable {
         }
     }
 
-    @KafkaListener(topics = "${kafka.topics.telemetry-snapshots}", groupId = "${spring.kafka.consumer.group-id.telemetry-snapshots}")
+    @KafkaListener(topics = "${spring.kafka.topics.telemetry-snapshots}", groupId = "${spring.kafka.consumer.group-id" +
+            ".telemetry-snapshots}")
     public void onMessage(ConsumerRecord<String, SensorsSnapshotAvro> record) {
         SensorsSnapshotAvro snapshot = record.value();
         log.info("Received snapshot: {}", snapshot);

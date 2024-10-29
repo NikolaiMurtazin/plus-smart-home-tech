@@ -57,7 +57,6 @@ public class AnalyzerProcessor {
         }
 
         try {
-            // Проверка типа данных и приведение
             switch (condition.getType()) {
                 case TEMPERATURE:
                     if (sensorState.getData() instanceof TemperatureSensorAvro tempSensor) {

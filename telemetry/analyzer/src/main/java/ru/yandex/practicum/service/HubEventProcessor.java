@@ -9,6 +9,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import ru.yandex.practicum.config.KafkaConsumerConfig;
+import ru.yandex.practicum.config.KafkaSettings;
 import ru.yandex.practicum.kafka.telemetry.event.*;
 
 import java.time.Duration;
@@ -21,14 +22,17 @@ public class HubEventProcessor implements Runnable {
 
     private final ScenarioService scenarioService;
     private final SensorService sensorService;
+    private final KafkaConsumerConfig kafkaConsumerConfig;
+    private final KafkaSettings kafkaSettings;
 
     @Override
     public void run() {
-        try (KafkaConsumer<String, HubEventAvro> consumer = KafkaConsumerConfig.kafkaConsumerHubEvent()) {
-            consumer.subscribe(Collections.singletonList("telemetry.hubs.v1"));
+        try (KafkaConsumer<String, HubEventAvro> consumer = kafkaConsumerConfig.kafkaConsumerHubEvent()) {
+            consumer.subscribe(Collections.singletonList(kafkaSettings.getTopicsTelemetryHubs()));
 
             while (!Thread.currentThread().isInterrupted()) {
-                ConsumerRecords<String, HubEventAvro> records = consumer.poll(Duration.ofMillis(100));
+                ConsumerRecords<String, HubEventAvro> records =
+                        consumer.poll(Duration.ofMillis(kafkaSettings.getPollTimeout()));
 
                 for (ConsumerRecord<String, HubEventAvro> record : records) {
                     try {
