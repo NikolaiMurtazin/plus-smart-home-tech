@@ -10,14 +10,13 @@ import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import ru.yandex.practicum.config.KafkaSettings;
+import ru.yandex.practicum.config.KafkaConfigProperties;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,19 +29,19 @@ public class AggregationStarter {
 
     private final KafkaConsumer<String, SensorEventAvro> consumer;
     private final KafkaProducer<String, SensorsSnapshotAvro> producer;
-    private final KafkaSettings kafkaSettings;
+    private final KafkaConfigProperties kafkaConfigProperties;
 
     private final Map<String, SensorsSnapshotAvro> snapshots = new ConcurrentHashMap<>();
 
 
     public void start() {
         try {
-            consumer.subscribe(Collections.singletonList(kafkaSettings.getTopicsTelemetrySensors()));
 
-            log.info("Сервис агрегации запущен и подписан на топик [{}]", kafkaSettings.getTopicsTelemetrySensors());
+            log.info("Сервис агрегации запущен и подписан на топик [{}]", kafkaConfigProperties.getConsumer().getGroupId());
 
             while (true) {
-                ConsumerRecords<String, SensorEventAvro> records = consumer.poll(Duration.ofMillis(100));
+                ConsumerRecords<String, SensorEventAvro> records =
+                        consumer.poll(Duration.ofMillis(Long.parseLong(kafkaConfigProperties.getConsumer().getPollTimeout())));
                 for (ConsumerRecord<String, SensorEventAvro> record : records) {
                     SensorEventAvro event = record.value();
                     processEvent(event);
@@ -110,7 +109,7 @@ public class AggregationStarter {
 
     private void sendSnapshot(SensorsSnapshotAvro snapshot) {
         ProducerRecord<String, SensorsSnapshotAvro> record = new ProducerRecord<>(
-                kafkaSettings.getTopicsTelemetrySensors(), snapshot.getHubId(), snapshot);
+                kafkaConfigProperties.getProducer().getTopic(), snapshot.getHubId(), snapshot);
 
         producer.send(record, (metadata, exception) -> {
             if (exception != null) {
@@ -119,9 +118,5 @@ public class AggregationStarter {
                 log.info("Снапшот отправлен в Kafka, hubId: {}", snapshot.getHubId());
             }
         });
-    }
-
-    public void shutdown() {
-        consumer.wakeup();
     }
 }

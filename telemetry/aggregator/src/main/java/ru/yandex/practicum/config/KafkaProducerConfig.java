@@ -6,7 +6,6 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
-import ru.yandex.practicum.serializer.AvroSerializer;
 
 import java.util.Properties;
 
@@ -14,14 +13,14 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class KafkaProducerConfig {
 
-    private final KafkaSettings kafkaSettings;
+    private final KafkaConfigProperties kafkaSettings;
 
     @Bean
     public KafkaProducer<String, SensorsSnapshotAvro> kafkaProducer() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaSettings.getBootstrapServers());
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaSettings.getProducerKeySerializer());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroSerializer.class);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, kafkaSettings.getProducer().getKeySerializer());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, kafkaSettings.getProducer().getValueSerializer());
 
         return new KafkaProducer<>(props);
     }
