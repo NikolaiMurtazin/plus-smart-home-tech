@@ -1,0 +1,13 @@
+collector:
+  kafka:
+    topics:
+      hubEvents: "telemetry.hubs.v1"
+      sensorEvents: "telemetry.sensors.v1"
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      bootstrap-servers: ${collector.kafka.bootstrap-servers}
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.yandex.practicum.AvroSerializer
+  #spring.kafka.properties.schema.registry.url=http://localhost:8081
