@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public interface ShoppingCartService {
 
+    ShoppingCartDto getShoppingCartById(UUID uuid);
+
     ShoppingCartDto getShoppingCart(String username);
 
     ShoppingCartDto addProducts(String username, Map<UUID, Integer> products);

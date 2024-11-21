@@ -30,6 +30,12 @@ public class ErrorHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Товар недоступен", ex);
     }
 
+    @ExceptionHandler(CartNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleCartNotFoundException(CartNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Корзина не найдена", ex);
+    }
+
     @ExceptionHandler(InternalServerErrorException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleInternalServerErrorException(InternalServerErrorException ex) {

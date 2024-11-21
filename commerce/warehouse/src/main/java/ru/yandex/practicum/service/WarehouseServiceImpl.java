@@ -46,7 +46,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         }
 
         WarehouseProduct newProduct = warehouseMapper.toWarehouseProduct(request);
-        newProduct.setQuantityAvailable(0); // Устанавливаем начальное количество
+        newProduct.setQuantityAvailable(0);
 
         return warehouseProductRepository.save(newProduct);
     }
@@ -113,7 +113,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     public BookedProductsDto assembleOrder(AssemblyProductForOrderFromShoppingCartRequest request) {
         log.info("Сборка заказа для корзины с ID: {} и заказа с ID: {}", request.getShoppingCartId(), request.getOrderId());
 
-        ShoppingCartDto cartDto = shoppingCartClient.getShoppingCart(request.getShoppingCartId());
+        ShoppingCartDto cartDto = shoppingCartClient.getShoppingCartById(request.getShoppingCartId());
         if (cartDto == null || cartDto.getProducts().isEmpty()) {
             throw new NoSpecifiedProductInWarehouseException("Корзина пуста или не найдена.");
         }

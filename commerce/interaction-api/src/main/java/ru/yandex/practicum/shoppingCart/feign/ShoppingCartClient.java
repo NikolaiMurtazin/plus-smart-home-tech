@@ -7,9 +7,9 @@ import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
 
 import java.util.UUID;
 
-@FeignClient(name = "shopping-cart-service")
+@FeignClient(name = "shopping-cart-service", path = "/api/v1/shopping-cart")
 public interface ShoppingCartClient {
 
-    @GetMapping("/api/v1/shopping-cart/{id}")
-    ShoppingCartDto getShoppingCart(@PathVariable UUID id);
+    @GetMapping("/{id}")
+    ShoppingCartDto getShoppingCartById(@PathVariable UUID id);
 }

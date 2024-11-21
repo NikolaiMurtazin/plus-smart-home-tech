@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.exeption.CartNotFoundException;
 import ru.yandex.practicum.exeption.NoProductsInShoppingCartException;
 import ru.yandex.practicum.exeption.NotAuthorizedUserException;
 import ru.yandex.practicum.exeption.ProductNotAvailableException;
@@ -33,6 +34,20 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final CartMapper cartMapper;
 
     @Override
+    @Transactional
+    public ShoppingCartDto getShoppingCartById(UUID uuid) {
+        log.info("Получение корзины по UUID: {}", uuid);
+
+        ShoppingCart shoppingCart = shoppingCartRepository.findById(uuid)
+                .orElseThrow(() -> new CartNotFoundException("Корзина не найдена по UUID: " + uuid));
+
+        ShoppingCartDto dto = cartMapper.toShoppingCartDto(shoppingCart);
+        log.info("Корзина по uuid {} успешно получена: {}", uuid, dto);
+        return dto;
+    }
+
+    @Override
+    @Transactional
     public ShoppingCartDto getShoppingCart(String username) {
         log.info("Получение корзины для пользователя: {}", username);
         validateUsername(username);
@@ -46,6 +61,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    @Transactional
     public ShoppingCartDto addProducts(String username, Map<UUID, Integer> products) {
         log.info("Добавление товаров в корзину для пользователя: {}", username);
         validateUsername(username);
@@ -56,7 +72,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             UUID productId = entry.getKey();
             int quantity = entry.getValue();
 
-            // Проверка доступности товара
             ProductDto productDto = shoppingStoreClient.getProduct(productId);
             if (productDto == null || productDto.getProductState() != ProductState.ACTIVE) {
                 throw new ProductNotAvailableException("Товар недоступен: " + productId);
@@ -72,6 +87,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    @Transactional
     public ShoppingCartDto removeProducts(String username, Map<UUID, Integer> products) {
         log.info("Удаление товаров из корзины для пользователя: {}", username);
         validateUsername(username);
@@ -91,6 +107,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    @Transactional
     public ProductDto changeProductQuantity(String username, ChangeProductQuantityRequest request) {
         log.info("Изменение количества товара в корзине для пользователя: {}", username);
         validateUsername(username);
@@ -113,6 +130,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    @Transactional
     public void deactivateShoppingCart(String username) {
         log.info("Деактивация корзины для пользователя: {}", username);
         validateUsername(username);
@@ -159,7 +177,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private void updateProductQuantity(ShoppingCart shoppingCart, UUID productId, int quantityChange) {
         shoppingCart.getProducts().merge(productId, quantityChange, (current, change) -> {
             int updatedQuantity = current + change;
-            return updatedQuantity > 0 ? updatedQuantity : null; // Удаление товара
+            return updatedQuantity > 0 ? updatedQuantity : null;
         });
     }
 

@@ -8,12 +8,12 @@ import ru.yandex.practicum.warehouse.dto.AssemblyProductForOrderFromShoppingCart
 import ru.yandex.practicum.warehouse.dto.BookedProductsDto;
 
 
-@FeignClient(name = "warehouse-service", url = "http://warehouse-service")
+@FeignClient(name = "warehouse-service", path = "/api/v1/warehouse")
 public interface WarehouseClient {
 
-    @PostMapping("/api/v1/warehouse/booking")
+    @PostMapping("/booking")
     BookedProductsDto bookProducts(@RequestBody ShoppingCartDto shoppingCart);
 
-    @PostMapping("/api/v1/warehouse/assembly")
+    @PostMapping("/assembly")
     BookedProductsDto assembleOrder(@RequestBody AssemblyProductForOrderFromShoppingCartRequest request);
 }
