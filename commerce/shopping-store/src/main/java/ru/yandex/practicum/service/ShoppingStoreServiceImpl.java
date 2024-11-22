@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.exeption.ProductNotFoundException;
 import ru.yandex.practicum.mapper.ProductMapper;
 import ru.yandex.practicum.model.Product;
@@ -40,6 +41,7 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     }
 
     @Override
+    @Transactional
     public ProductDto createNewProduct(ProductDto productDto) {
         log.info("Создание нового продукта: {}", productDto);
         Product product = productMapper.toProduct(productDto);
@@ -49,6 +51,7 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     }
 
     @Override
+    @Transactional
     public ProductDto updateProduct(ProductDto productDto) {
         UUID productId = productDto.getProductId();
         log.info("Обновление продукта с ID: {}", productId);
@@ -66,6 +69,7 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     }
 
     @Override
+    @Transactional
     public boolean removeProductFromStore(UUID productId) {
         log.info("Удаление продукта с ID: {}", productId);
         Product product = productRepository.findById(productId)
@@ -80,6 +84,7 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     }
 
     @Override
+    @Transactional
     public boolean setProductQuantityState(SetProductQuantityStateRequest request) {
         UUID productId = request.getProductId();
         log.info("Обновление состояния количества для продукта с ID: {}, новое состояние: {}", productId, request.getQuantityState());
@@ -96,7 +101,7 @@ public class ShoppingStoreServiceImpl implements ShoppingStoreService {
     }
 
     @Override
-    public ProductDto getProductById(UUID productId) {
+    public ProductDto getProduct(UUID productId) {
         log.info("Получение продукта с ID: {}", productId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> {

@@ -1,10 +1,9 @@
 package ru.yandex.practicum.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.exeption.CartNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.exeption.NoProductsInShoppingCartException;
 import ru.yandex.practicum.exeption.NotAuthorizedUserException;
 import ru.yandex.practicum.exeption.ProductNotAvailableException;
@@ -15,8 +14,9 @@ import ru.yandex.practicum.shoppingCart.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
 import ru.yandex.practicum.shoppingStore.dto.ProductDto;
 import ru.yandex.practicum.shoppingStore.enums.ProductState;
+import ru.yandex.practicum.shoppingStore.enums.QuantityState;
 import ru.yandex.practicum.shoppingStore.feign.ShoppingStoreClient;
-import ru.yandex.practicum.warehouse.dto.BookedProductsDto;
+import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 import ru.yandex.practicum.warehouse.feign.WarehouseClient;
 
 import java.util.HashMap;
@@ -34,20 +34,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final CartMapper cartMapper;
 
     @Override
-    @Transactional
-    public ShoppingCartDto getShoppingCartById(UUID uuid) {
-        log.info("Получение корзины по UUID: {}", uuid);
-
-        ShoppingCart shoppingCart = shoppingCartRepository.findById(uuid)
-                .orElseThrow(() -> new CartNotFoundException("Корзина не найдена по UUID: " + uuid));
-
-        ShoppingCartDto dto = cartMapper.toShoppingCartDto(shoppingCart);
-        log.info("Корзина по uuid {} успешно получена: {}", uuid, dto);
-        return dto;
-    }
-
-    @Override
-    @Transactional
     public ShoppingCartDto getShoppingCart(String username) {
         log.info("Получение корзины для пользователя: {}", username);
         validateUsername(username);
@@ -55,9 +41,9 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         ShoppingCart shoppingCart = shoppingCartRepository.findByUsernameAndActive(username, true)
                 .orElseGet(() -> createNewShoppingCart(username));
 
-        ShoppingCartDto dto = cartMapper.toShoppingCartDto(shoppingCart);
-        log.info("Корзина пользователя {} успешно получена: {}", username, dto);
-        return dto;
+        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        log.info("Корзина пользователя {} успешно получена: {}", username, shoppingCartDto);
+        return shoppingCartDto;
     }
 
     @Override
@@ -72,18 +58,27 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             UUID productId = entry.getKey();
             int quantity = entry.getValue();
 
-            ProductDto productDto = shoppingStoreClient.getProduct(productId);
-            if (productDto == null || productDto.getProductState() != ProductState.ACTIVE) {
-                throw new ProductNotAvailableException("Товар недоступен: " + productId);
-            }
+            checkProductQuantityState(productId, quantity);
 
             updateProductQuantity(shoppingCart, productId, quantity);
         }
 
         shoppingCartRepository.save(shoppingCart);
-        ShoppingCartDto dto = cartMapper.toShoppingCartDto(shoppingCart);
-        log.info("Корзина пользователя {} успешно обновлена: {}", username, dto);
-        return dto;
+        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        log.info("Корзина пользователя {} успешно обновлена: {}", username, shoppingCartDto);
+        return shoppingCartDto;
+    }
+
+    @Override
+    public void deactivateShoppingCart(String username) {
+        log.info("Деактивация корзины для пользователя: {}", username);
+        validateUsername(username);
+
+        ShoppingCart shoppingCart = getActiveShoppingCart(username);
+
+        shoppingCart.setActive(false);
+        shoppingCartRepository.save(shoppingCart);
+        log.info("Корзина пользователя {} успешно деактивирована.", username);
     }
 
     @Override
@@ -101,14 +96,14 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
 
         shoppingCartRepository.save(shoppingCart);
-        ShoppingCartDto dto = cartMapper.toShoppingCartDto(shoppingCart);
-        log.info("Корзина пользователя {} успешно обновлена: {}", username, dto);
-        return dto;
+        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        log.info("Корзина пользователя {} успешно обновлена: {}", username, shoppingCartDto);
+        return shoppingCartDto;
     }
 
     @Override
     @Transactional
-    public ProductDto changeProductQuantity(String username, ChangeProductQuantityRequest request) {
+    public ShoppingCartDto changeProductQuantity(String username, ChangeProductQuantityRequest request) {
         log.info("Изменение количества товара в корзине для пользователя: {}", username);
         validateUsername(username);
 
@@ -121,30 +116,19 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             throw new NoProductsInShoppingCartException("Товар не найден в корзине: " + productId);
         }
 
+        checkProductQuantityState(productId, newQuantity);
+
         shoppingCart.getProducts().put(productId, newQuantity);
         shoppingCartRepository.save(shoppingCart);
 
-        ProductDto updatedProduct = shoppingStoreClient.getProduct(productId);
+        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
         log.info("Количество товара {} в корзине пользователя {} успешно обновлено до {}", productId, username, newQuantity);
-        return updatedProduct;
+        return shoppingCartDto;
     }
 
     @Override
     @Transactional
-    public void deactivateShoppingCart(String username) {
-        log.info("Деактивация корзины для пользователя: {}", username);
-        validateUsername(username);
-
-        ShoppingCart shoppingCart = getActiveShoppingCart(username);
-
-        shoppingCart.setActive(false);
-        shoppingCartRepository.save(shoppingCart);
-        log.info("Корзина пользователя {} успешно деактивирована.", username);
-    }
-
-    @Override
-    @Transactional
-    public BookedProductsDto bookProducts(String username) {
+    public BookedProductDto bookProducts(String username) {
         log.info("Бронирование товаров для пользователя: {}", username);
         validateUsername(username);
 
@@ -156,7 +140,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
 
         try {
-            BookedProductsDto bookedProducts = warehouseClient.bookProducts(cartMapper.toShoppingCartDto(shoppingCart));
+            BookedProductDto bookedProducts = warehouseClient.bookProducts(cartMapper.toShoppingCartDto(shoppingCart));
 
             shoppingCart.setActive(false);
             shoppingCartRepository.save(shoppingCart);
@@ -195,5 +179,36 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 .products(new HashMap<>())
                 .build();
         return shoppingCartRepository.save(cart);
+    }
+
+    private void checkProductQuantityState(UUID productId, int quantity) {
+        ProductDto productDto = shoppingStoreClient.getProduct(productId);
+        if (productDto == null || productDto.getProductState() != ProductState.ACTIVE) {
+            throw new ProductNotAvailableException("Товар недоступен: " + productId);
+        }
+
+        QuantityState quantityState = productDto.getQuantityState();
+        switch (quantityState) {
+            case ENDED:
+                throw new ProductNotAvailableException("Товар отсутствует на складе: " + productId);
+
+            case FEW:
+                if (quantity > 5) {
+                    throw new ProductNotAvailableException(
+                            String.format("Товар с ограниченным количеством (меньше 5): %s. Запрошено: %d", productId, quantity));
+                }
+                break;
+
+            case ENOUGH:
+                if (quantity >= 20) {
+                    throw new ProductNotAvailableException(
+                            String.format("Товар %s доступен в достаточном количестве, но запрошено большое " +
+                                    "количество: %d", productId, quantity));
+                }
+                break;
+
+            default:
+                throw new IllegalStateException("Неизвестное состояние товара: " + quantityState);
+        }
     }
 }

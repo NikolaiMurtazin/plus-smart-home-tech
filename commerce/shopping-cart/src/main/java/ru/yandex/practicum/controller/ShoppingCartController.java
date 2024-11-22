@@ -14,7 +14,7 @@ import ru.yandex.practicum.service.ShoppingCartService;
 import ru.yandex.practicum.shoppingCart.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
 import ru.yandex.practicum.shoppingStore.dto.ProductDto;
-import ru.yandex.practicum.warehouse.dto.BookedProductsDto;
+import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 
 import java.util.Map;
 import java.util.UUID;
@@ -48,13 +48,13 @@ public class ShoppingCartController {
     }
 
     @PostMapping("/change-quantity")
-    public ProductDto changeProductQuantity(
+    public ShoppingCartDto changeProductQuantity(
             @RequestParam String username, @Valid @RequestBody ChangeProductQuantityRequest request) {
         return shoppingCartService.changeProductQuantity(username, request);
     }
 
     @PostMapping("/booking")
-    public BookedProductsDto bookProducts(@RequestParam String username) {
+    public BookedProductDto bookProducts(@RequestParam String username) {
         return shoppingCartService.bookProducts(username);
     }
 }

@@ -11,7 +11,6 @@ CREATE TABLE bookings
     delivery_weight  DOUBLE PRECISION NOT NULL,
     delivery_volume  DOUBLE PRECISION NOT NULL,
     fragile          BOOLEAN          NOT NULL,
-    created_at       TIMESTAMP        NOT NULL
 );
 
 CREATE TABLE booking_products

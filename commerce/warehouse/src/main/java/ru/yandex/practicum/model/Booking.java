@@ -31,7 +31,6 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID bookingId;
 
     @Column(nullable = false)
     private UUID shoppingCartId;
@@ -50,7 +49,4 @@ public class Booking {
 
     @Column(nullable = false)
     private Boolean fragile;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
 }
