@@ -12,7 +12,7 @@ import ru.yandex.practicum.grpc.telemetry.hubrouter.HubRouterControllerGrpc;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "analyzer.grpc.client.hub-router")
+@ConfigurationProperties(prefix = "spring.grpc.client.hub-router")
 public class GrpcConfig {
     private String address;
 

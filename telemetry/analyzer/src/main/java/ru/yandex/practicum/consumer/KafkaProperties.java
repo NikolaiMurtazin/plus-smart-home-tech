@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "analyzer.kafka.consumer")
+@ConfigurationProperties(prefix = "spring.kafka.consumer")
 public class KafkaProperties {
     private String bootstrapServers;
     private long pollDuration;
