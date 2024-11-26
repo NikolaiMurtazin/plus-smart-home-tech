@@ -6,16 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.exeption.NoProductsInShoppingCartException;
 import ru.yandex.practicum.exeption.NotAuthorizedUserException;
-import ru.yandex.practicum.exeption.ProductNotAvailableException;
 import ru.yandex.practicum.mapper.CartMapper;
 import ru.yandex.practicum.model.ShoppingCart;
 import ru.yandex.practicum.repository.ShoppingCartRepository;
 import ru.yandex.practicum.shoppingCart.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
-import ru.yandex.practicum.shoppingStore.dto.ProductDto;
-import ru.yandex.practicum.shoppingStore.enums.ProductState;
-import ru.yandex.practicum.shoppingStore.enums.QuantityState;
-import ru.yandex.practicum.shoppingStore.feign.ShoppingStoreClient;
 import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 import ru.yandex.practicum.warehouse.feign.WarehouseClient;
 
@@ -29,7 +24,6 @@ import java.util.UUID;
 public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     private final ShoppingCartRepository shoppingCartRepository;
-    private final ShoppingStoreClient shoppingStoreClient;
     private final WarehouseClient warehouseClient;
     private final CartMapper cartMapper;
 
@@ -57,8 +51,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         for (Map.Entry<UUID, Integer> entry : products.entrySet()) {
             UUID productId = entry.getKey();
             int quantity = entry.getValue();
-
-            checkProductQuantityState(productId, quantity);
 
             updateProductQuantity(shoppingCart, productId, quantity);
         }
@@ -115,8 +107,6 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (!shoppingCart.getProducts().containsKey(productId)) {
             throw new NoProductsInShoppingCartException("Товар не найден в корзине: " + productId);
         }
-
-        checkProductQuantityState(productId, newQuantity);
 
         shoppingCart.getProducts().put(productId, newQuantity);
         shoppingCartRepository.save(shoppingCart);
@@ -179,36 +169,5 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
                 .products(new HashMap<>())
                 .build();
         return shoppingCartRepository.save(cart);
-    }
-
-    private void checkProductQuantityState(UUID productId, int quantity) {
-        ProductDto productDto = shoppingStoreClient.getProduct(productId);
-        if (productDto == null || productDto.getProductState() != ProductState.ACTIVE) {
-            throw new ProductNotAvailableException("Товар недоступен: " + productId);
-        }
-
-        QuantityState quantityState = productDto.getQuantityState();
-        switch (quantityState) {
-            case ENDED:
-                throw new ProductNotAvailableException("Товар отсутствует на складе: " + productId);
-
-            case FEW:
-                if (quantity > 5) {
-                    throw new ProductNotAvailableException(
-                            String.format("Товар с ограниченным количеством (меньше 5): %s. Запрошено: %d", productId, quantity));
-                }
-                break;
-
-            case ENOUGH:
-                if (quantity >= 20) {
-                    throw new ProductNotAvailableException(
-                            String.format("Товар %s доступен в достаточном количестве, но запрошено большое " +
-                                    "количество: %d", productId, quantity));
-                }
-                break;
-
-            default:
-                throw new IllegalStateException("Неизвестное состояние товара: " + quantityState);
-        }
     }
 }

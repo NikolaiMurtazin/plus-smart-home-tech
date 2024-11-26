@@ -94,7 +94,7 @@ public class WarehouseServiceImpl implements WarehouseService {
             product.setQuantityAvailable(product.getQuantityAvailable() - requestedQuantity);
             warehouseProductRepository.save(product);
 
-            QuantityState newState = determineState(product.getQuantityAvailable());
+            QuantityState newState = QuantityState.determineState(product.getQuantityAvailable());
             shoppingStoreClient.setProductQuantityState(
                     SetProductQuantityStateRequest.builder()
                             .productId(productId)
@@ -154,7 +154,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         product.setQuantityAvailable(product.getQuantityAvailable() + request.getQuantity());
         WarehouseProduct updatedProduct = warehouseProductRepository.save(product);
 
-        QuantityState newState = determineState(updatedProduct.getQuantityAvailable());
+        QuantityState newState = QuantityState.determineState(updatedProduct.getQuantityAvailable());
         shoppingStoreClient.setProductQuantityState(
                 SetProductQuantityStateRequest.builder()
                         .productId(request.getProductId())
@@ -174,17 +174,5 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .house("10")
                 .flat("1")
                 .build();
-    }
-
-    private QuantityState determineState(int quantity) {
-        if (quantity == 0) {
-            return QuantityState.ENDED;
-        } else if (quantity > 0 && quantity < 5) {
-            return QuantityState.FEW;
-        } else if (quantity >= 5 && quantity <= 20) {
-            return QuantityState.ENOUGH;
-        } else {
-            return QuantityState.MANY;
-        }
     }
 }
