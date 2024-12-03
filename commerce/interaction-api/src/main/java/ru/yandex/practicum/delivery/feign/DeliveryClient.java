@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 public interface DeliveryClient {
 
     @PutMapping
-    DeliveryDto planDelivery(@RequestBody DeliveryDto deliveryDto); // order
+    DeliveryDto planDelivery(@RequestBody DeliveryDto deliveryDto);
 
     @PostMapping("/cost")
-    BigDecimal deliveryCost(@RequestBody OrderDto orderDto); // order
+    BigDecimal deliveryCost(@RequestBody OrderDto orderDto);
 }

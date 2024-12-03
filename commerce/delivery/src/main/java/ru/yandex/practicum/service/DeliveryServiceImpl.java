@@ -35,14 +35,9 @@ public class DeliveryServiceImpl implements DeliveryService {
     public DeliveryDto planDelivery(DeliveryDto deliveryDto) {
         log.info("Планирование доставки: {}", deliveryDto);
 
-        OrderDto orderDto = orderClient.delivery(deliveryDto.getOrderId());
-
         deliveryDto.setState(DeliveryState.CREATED);
 
         Delivery delivery = deliveryMapper.fromDeliveryDto(deliveryDto);
-        delivery.setDeliveryWeight(orderDto.getDeliveryWeight());
-        delivery.setDeliveryVolume(orderDto.getDeliveryVolume());
-        delivery.setFragile(orderDto.isFragile());
 
         deliveryRepository.save(delivery);
 
@@ -59,6 +54,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         delivery.setState(DeliveryState.DELIVERED);
         deliveryRepository.save(delivery);
+
+        orderClient.delivery(delivery.getOrderId());
     }
 
     @Override
@@ -98,6 +95,12 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         Delivery delivery = deliveryRepository.findById(orderDto.getDeliveryId())
                 .orElseThrow(() -> new NoDeliveryFoundException("Не найдена доставка для расчёта: " + orderDto.getDeliveryId()));
+
+        delivery.setDeliveryWeight(orderDto.getDeliveryWeight());
+        delivery.setDeliveryVolume(orderDto.getDeliveryVolume());
+        delivery.setFragile(orderDto.isFragile());
+
+        deliveryRepository.save(delivery);
 
         String warehouseAddress = String.valueOf(warehouseClient.getWarehouseAddress());
 

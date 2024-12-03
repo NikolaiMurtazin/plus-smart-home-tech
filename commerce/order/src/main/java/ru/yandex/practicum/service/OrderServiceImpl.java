@@ -86,6 +86,20 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
 
+        AddressDto fromAddress = warehouseClient.getWarehouseAddress();
+        order.setFromAddress(addressMapper.fromAddressDto(fromAddress));
+
+        DeliveryDto deliveryDto = DeliveryDto.builder()
+                .deliveryId(UUID.randomUUID())
+                .orderId(order.getOrderId())
+                .fromAddress(fromAddress)
+                .toAddress(addressMapper.toAddressDto(order.getToAddress()))
+                .state(DeliveryState.CREATED)
+                .build();
+
+        DeliveryDto createdDelivery = deliveryClient.planDelivery(deliveryDto);
+        order.setDeliveryId(createdDelivery.getDeliveryId());
+
         BigDecimal productPrice = paymentClient.productCost(orderMapper.toOrderDto(order));
         order.setProductPrice(productPrice);
 
@@ -94,8 +108,6 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal totalPrice = paymentClient.getTotalCost(orderMapper.toOrderDto(order));
         order.setTotalPrice(totalPrice);
-
-        order.setState(OrderState.ON_PAYMENT);
 
         orderRepository.save(order);
 
@@ -139,21 +151,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Инициация доставки для заказа: {}", orderId);
         Order order = getOrderById(orderId);
 
-        AddressDto fromAddress = warehouseClient.getWarehouseAddress();
-        order.setFromAddress(addressMapper.fromAddressDto(fromAddress));
-
-        DeliveryDto deliveryDto = DeliveryDto.builder()
-                .deliveryId(UUID.randomUUID())
-                .orderId(order.getOrderId())
-                .fromAddress(fromAddress)
-                .toAddress(addressMapper.toAddressDto(order.getToAddress()))
-                .state(DeliveryState.CREATED)
-                .build();
-
-        DeliveryDto createdDelivery = deliveryClient.planDelivery(deliveryDto);
-        order.setDeliveryId(createdDelivery.getDeliveryId());
-        order.setState(OrderState.ON_DELIVERY);
-
+        order.setState(OrderState.DELIVERED);
         orderRepository.save(order);
 
         return orderMapper.toOrderDto(order);

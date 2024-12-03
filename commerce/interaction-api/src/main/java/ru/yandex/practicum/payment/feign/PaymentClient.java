@@ -14,18 +14,18 @@ import java.util.UUID;
 public interface PaymentClient {
 
     @PostMapping("/productCost")
-    BigDecimal productCost(@RequestBody OrderDto orderDto); // order
+    BigDecimal productCost(@RequestBody OrderDto orderDto);
 
     @PostMapping("/totalCost")
-    BigDecimal getTotalCost(@RequestBody OrderDto orderDto); // order
+    BigDecimal getTotalCost(@RequestBody OrderDto orderDto);
 
     @PostMapping
-    PaymentDto payment(@RequestBody OrderDto orderDto); // order
+    PaymentDto payment(@RequestBody OrderDto orderDto);
 
     @PostMapping("/api/v1/order/payment")
-    void paymentSuccess(@RequestParam UUID paymentId); // order
+    void paymentSuccess(@RequestParam UUID paymentId);
 
     @PostMapping("/api/v1/order/payment/failed")
-    void paymentFailed(@RequestParam UUID paymentId); // order
+    void paymentFailed(@RequestParam UUID paymentId);
 
 }
