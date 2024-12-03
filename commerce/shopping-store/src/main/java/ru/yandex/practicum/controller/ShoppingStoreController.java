@@ -3,6 +3,7 @@ package ru.yandex.practicum.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,7 +27,7 @@ public class ShoppingStoreController {
 
     @GetMapping
     List<ProductDto> getProducts(@RequestParam("category") ProductCategory category,
-                                 @Valid @RequestParam("pageableDto") PageableDto pageableDto) {
+                                 @Valid @ModelAttribute PageableDto pageableDto) {
         return shoppingStoreService.getProductsByCategory(category, pageableDto);
     }
 

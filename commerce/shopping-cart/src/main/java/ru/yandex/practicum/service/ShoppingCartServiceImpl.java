@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.yandex.practicum.exeption.NoProductsInShoppingCartException;
-import ru.yandex.practicum.exeption.NotAuthorizedUserException;
-import ru.yandex.practicum.mapper.CartMapper;
+import ru.yandex.practicum.exception.NoProductsInShoppingCartException;
+import ru.yandex.practicum.exception.NotAuthorizedUserException;
+import ru.yandex.practicum.mapper.ShoppingCartMapper;
 import ru.yandex.practicum.model.ShoppingCart;
 import ru.yandex.practicum.repository.ShoppingCartRepository;
 import ru.yandex.practicum.shoppingCart.dto.ChangeProductQuantityRequest;
@@ -25,7 +25,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     private final ShoppingCartRepository shoppingCartRepository;
     private final WarehouseClient warehouseClient;
-    private final CartMapper cartMapper;
+    private final ShoppingCartMapper shoppingCartMapper;
 
     @Override
     public ShoppingCartDto getShoppingCart(String username) {
@@ -35,7 +35,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         ShoppingCart shoppingCart = shoppingCartRepository.findByUsernameAndActive(username, true)
                 .orElseGet(() -> createNewShoppingCart(username));
 
-        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        ShoppingCartDto shoppingCartDto = shoppingCartMapper.toShoppingCartDto(shoppingCart);
         log.info("Корзина пользователя {} успешно получена: {}", username, shoppingCartDto);
         return shoppingCartDto;
     }
@@ -56,7 +56,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
 
         shoppingCartRepository.save(shoppingCart);
-        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        ShoppingCartDto shoppingCartDto = shoppingCartMapper.toShoppingCartDto(shoppingCart);
         log.info("Корзина пользователя {} успешно обновлена: {}", username, shoppingCartDto);
         return shoppingCartDto;
     }
@@ -88,7 +88,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
 
         shoppingCartRepository.save(shoppingCart);
-        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        ShoppingCartDto shoppingCartDto = shoppingCartMapper.toShoppingCartDto(shoppingCart);
         log.info("Корзина пользователя {} успешно обновлена: {}", username, shoppingCartDto);
         return shoppingCartDto;
     }
@@ -111,7 +111,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCart.getProducts().put(productId, newQuantity);
         shoppingCartRepository.save(shoppingCart);
 
-        ShoppingCartDto shoppingCartDto = cartMapper.toShoppingCartDto(shoppingCart);
+        ShoppingCartDto shoppingCartDto = shoppingCartMapper.toShoppingCartDto(shoppingCart);
         log.info("Количество товара {} в корзине пользователя {} успешно обновлено до {}", productId, username, newQuantity);
         return shoppingCartDto;
     }
@@ -130,7 +130,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
 
         try {
-            BookedProductDto bookedProducts = warehouseClient.bookProducts(cartMapper.toShoppingCartDto(shoppingCart));
+            BookedProductDto bookedProducts = warehouseClient.bookProducts(shoppingCartMapper.toShoppingCartDto(shoppingCart));
 
             shoppingCart.setActive(false);
             shoppingCartRepository.save(shoppingCart);

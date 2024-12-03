@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.service.ShoppingCartService;
 import ru.yandex.practicum.shoppingCart.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
-import ru.yandex.practicum.shoppingStore.dto.ProductDto;
 import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 
 import java.util.Map;
@@ -27,34 +26,34 @@ public class ShoppingCartController {
     private final ShoppingCartService shoppingCartService;
 
     @GetMapping
-    public ShoppingCartDto getShoppingCart(@RequestParam String username) {
+    ShoppingCartDto getShoppingCart(@RequestParam String username) {
         return shoppingCartService.getShoppingCart(username);
     }
 
     @PutMapping
-    public ShoppingCartDto addProducts(@RequestParam String username, @RequestBody Map<UUID, Integer> products) {
+    ShoppingCartDto addProducts(@RequestParam String username, @RequestBody Map<UUID, Integer> products) {
         return shoppingCartService.addProducts(username, products);
     }
 
     @DeleteMapping
-    public void deactivateShoppingCart(@RequestParam String username) {
+    void deactivateShoppingCart(@RequestParam String username) {
         shoppingCartService.deactivateShoppingCart(username);
     }
 
     @PostMapping("/remove")
-    public ShoppingCartDto removeProducts(
+    ShoppingCartDto removeProducts(
             @RequestParam String username, @RequestBody Map<UUID, Integer> products) {
         return shoppingCartService.removeProducts(username, products);
     }
 
     @PostMapping("/change-quantity")
-    public ShoppingCartDto changeProductQuantity(
+    ShoppingCartDto changeProductQuantity(
             @RequestParam String username, @Valid @RequestBody ChangeProductQuantityRequest request) {
         return shoppingCartService.changeProductQuantity(username, request);
     }
 
     @PostMapping("/booking")
-    public BookedProductDto bookProducts(@RequestParam String username) {
+    BookedProductDto bookProducts(@RequestParam String username) {
         return shoppingCartService.bookProducts(username);
     }
 }

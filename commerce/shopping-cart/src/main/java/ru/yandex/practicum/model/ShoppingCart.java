@@ -31,6 +31,7 @@ public class ShoppingCart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "shopping_cart_id")
     private UUID shoppingCartId;
 
     @Column(nullable = false)

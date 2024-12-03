@@ -6,7 +6,7 @@ import jakarta.ws.rs.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.exeption.InternalServerErrorException;
+import ru.yandex.practicum.exception.InternalServerErrorException;
 
 @Component
 @Slf4j
