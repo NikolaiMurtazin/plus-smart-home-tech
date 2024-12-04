@@ -16,7 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,6 +33,12 @@ public class Booking {
 
     @Column(nullable = false)
     private UUID shoppingCartId;
+
+    @Column(name = "order_id")
+    private UUID orderId;
+
+    @Column(name = "delivery_id")
+    private UUID deliveryId;
 
     @ElementCollection
     @CollectionTable(name = "booking_products", joinColumns = @JoinColumn(name = "booking_id"))

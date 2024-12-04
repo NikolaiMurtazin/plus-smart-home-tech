@@ -8,13 +8,14 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.delivery.dto.AddressDto;
 import ru.yandex.practicum.service.WarehouseServiceImpl;
 import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
 import ru.yandex.practicum.warehouse.dto.AddProductToWarehouseRequest;
-import ru.yandex.practicum.warehouse.dto.AddressDto;
 import ru.yandex.practicum.warehouse.dto.AssemblyProductForOrderFromShoppingCartRequest;
 import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 import ru.yandex.practicum.warehouse.dto.NewProductInWarehouseRequest;
+import ru.yandex.practicum.warehouse.dto.ShippedToDeliveryRequest;
 
 import java.util.Map;
 import java.util.UUID;
@@ -27,33 +28,38 @@ public class WarehouseController {
     private final WarehouseServiceImpl warehouseService;
 
     @PutMapping
-    public void addNewProduct(@RequestBody @Valid NewProductInWarehouseRequest request) {
+    void addNewProduct(@RequestBody @Valid NewProductInWarehouseRequest request) {
         warehouseService.addNewProduct(request);
     }
 
+    @PostMapping("/shipped")
+    void shippedToDelivery(@RequestBody ShippedToDeliveryRequest request) {
+        warehouseService.shippedToDelivery(request);
+    }
+
     @PostMapping("/return")
-    public void acceptReturn(@RequestBody Map<UUID, Integer> products) {
+    void acceptReturn(@RequestBody Map<UUID, Integer> products) {
         warehouseService.acceptReturn(products);
     }
 
     @PostMapping("/booking")
-    public BookedProductDto bookProductForShoppingCart(@RequestBody @Valid ShoppingCartDto cartDto) {
+    BookedProductDto bookProductForShoppingCart(@RequestBody @Valid ShoppingCartDto cartDto) {
         return warehouseService.bookProductForShoppingCart(cartDto);
     }
 
     @PostMapping("/assembly")
-    public BookedProductDto assemblyProductForOrderFromShoppingCart(
+    BookedProductDto assemblyProductForOrderFromShoppingCart(
             @RequestBody @Valid AssemblyProductForOrderFromShoppingCartRequest request) {
         return warehouseService.assemblyProductForOrderFromShoppingCart(request);
     }
 
     @PostMapping("/add")
-    public void addProductQuantity(@RequestBody @Valid AddProductToWarehouseRequest request) {
+    void addProductQuantity(@RequestBody @Valid AddProductToWarehouseRequest request) {
         warehouseService.addProductQuantity(request);
     }
 
     @GetMapping("/address")
-    public AddressDto getWarehouseAddress() {
+    AddressDto getWarehouseAddress() {
         return warehouseService.getWarehouseAddress();
     }
 }

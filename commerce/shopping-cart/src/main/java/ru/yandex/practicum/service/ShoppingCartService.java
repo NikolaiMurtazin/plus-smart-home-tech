@@ -2,7 +2,6 @@ package ru.yandex.practicum.service;
 
 import ru.yandex.practicum.shoppingCart.dto.ChangeProductQuantityRequest;
 import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
-import ru.yandex.practicum.shoppingStore.dto.ProductDto;
 import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 
 import java.util.Map;

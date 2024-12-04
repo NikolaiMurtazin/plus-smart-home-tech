@@ -31,31 +31,33 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "product_id")
     private UUID productId;
 
-    @Column(nullable = false)
+    @Column(name = "product_name", nullable = false)
     private String productName;
 
-    @Column(nullable = false)
+    @Column(name = "description", nullable = false)
     private String description;
 
+    @Column(name = "image_src")
     private String imageSrc;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "quantity_state", nullable = false)
     private QuantityState quantityState;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "product_state", nullable = false)
     private ProductState productState;
 
-    @Column(nullable = false)
+    @Column(name = "rating", nullable = false)
     private double rating;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "product_category", nullable = false)
     private ProductCategory productCategory;
 
-    @Column(nullable = false)
+    @Column(name = "price", nullable = false, precision = 15, scale = 2)
     private BigDecimal price;
 }

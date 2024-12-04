@@ -3,7 +3,7 @@ info:
   title: Smart Home Technologies API
   version: '1.0'
 servers:
-  - url: http://192.168.1.125:55878
+  - url: http://192.168.1.125:56643
     description: Generated server url
 tags:
   - name: Склад магазина
@@ -37,6 +37,27 @@ paths:
               schema:
                 $ref: >-
                   #/components/schemas/SpecifiedProductAlreadyInWarehouseException
+  /api/v1/warehouse/shipped:
+    post:
+      tags:
+        - Склад магазина
+      description: Передать товары в доставку.
+      operationId: shippedToDelivery
+      parameters:
+        - name: shippedToDeliveryRequest
+          in: query
+          description: Запрос на передачу в доставку.
+          schema:
+            $ref: '#/components/schemas/ShippedToDeliveryRequest'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShippedToDeliveryRequest'
+        required: true
+      responses:
+        '200':
+          description: OK
   /api/v1/warehouse/return:
     post:
       tags:
@@ -382,6 +403,22 @@ components:
                 type: string
         localizedMessage:
           type: string
+    ShippedToDeliveryRequest:
+      required:
+        - deliveryId
+        - orderId
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: Идентификатор заказа в БД
+          format: uuid
+          example: bbaa35c8-e659-44b2-882f-f6056e443c99
+        deliveryId:
+          type: string
+          description: Идентификатор доставки в БД
+          format: uuid
+      description: Запрос на передачу в доставку товаров.
     ShoppingCartDto:
       required:
         - products
@@ -401,25 +438,6 @@ components:
             format: int64
           description: Отображение идентификатора товара на отобранное количество.
       description: Корзина товаров в онлайн магазине.
-    BookedProductsDto:
-      required:
-        - deliveryVolume
-        - deliveryWeight
-        - fragile
-      type: object
-      properties:
-        deliveryWeight:
-          type: number
-          description: Общий вес доставки
-          format: double
-        deliveryVolume:
-          type: number
-          description: Общие объём доставки.
-          format: double
-        fragile:
-          type: boolean
-          description: Есть ли хрупкие вещи в доставке.
-      description: Общие сведения о зарезервированных товарах по корзине.
     ProductInShoppingCartLowQuantityInWarehouse:
       type: object
       properties:
@@ -583,6 +601,25 @@ components:
                 type: string
         localizedMessage:
           type: string
+    BookedProductsDto:
+      required:
+        - deliveryVolume
+        - deliveryWeight
+        - fragile
+      type: object
+      properties:
+        deliveryWeight:
+          type: number
+          description: Общий вес доставки
+          format: double
+        deliveryVolume:
+          type: number
+          description: Общие объём доставки.
+          format: double
+        fragile:
+          type: boolean
+          description: Есть ли хрупкие вещи в доставке.
+      description: Общие сведения о зарезервированных товарах по корзине.
     AssemblyProductForOrderFromShoppingCartRequest:
       required:
         - orderId

@@ -4,11 +4,11 @@ spring:
       routes:
         - id: shopping_cart_service_route
           uri: lb://shopping-cart
-
           predicates:
             - Path=/shopping-cart/**
           filters:
             - PrefixPath=/api/v1
+
         - id: shopping_store_service_route
           uri: lb://shopping-store
           predicates:
@@ -21,12 +21,34 @@ spring:
                 statuses:
                   - NOT_FOUND
                 methods:
-                  - ru/yandex/practicum/exeption/ProductNotFoundException.java
+                  - GET
+                  - POST
                 backoff:
                   firstBackoff: 500ms
                   maxBackoff: 2s
                   factor: 2
                   basedOnPreviousValue: true
+
+        - id: order_service_route
+          uri: lb://order-service
+          predicates:
+            - Path=/order/**
+          filters:
+            - PrefixPath=/api/v1
+
+        - id: payment_service_route
+          uri: lb://payment-service
+          predicates:
+            - Path=/payment/**
+          filters:
+            - PrefixPath=/api/v1
+
+        - id: delivery_service_route
+          uri: lb://delivery-service
+          predicates:
+            - Path=/delivery/**
+          filters:
+            - PrefixPath=/api/v1
 
 server:
   port: 8080
