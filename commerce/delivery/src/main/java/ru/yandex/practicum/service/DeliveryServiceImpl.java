@@ -104,10 +104,8 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         String warehouseAddress = String.valueOf(warehouseClient.getWarehouseAddress());
 
-        BigDecimal baseRate = BigDecimal.valueOf(5.0);
-
-        BigDecimal warehouseMultiplier = warehouseAddress.contains("ADDRESS_1") ? BigDecimal.ONE : BigDecimal.valueOf(2);
-        BigDecimal step1 = baseRate.multiply(warehouseMultiplier).add(baseRate);
+        final BigDecimal BASE_RATE = BigDecimal.valueOf(5.0);
+        BigDecimal step1 = getBigDecimal(warehouseAddress, BASE_RATE);
 
         BigDecimal fragileAddition = orderDto.isFragile() ? step1.multiply(BigDecimal.valueOf(0.2)) : BigDecimal.ZERO;
         BigDecimal step2 = step1.add(fragileAddition);
@@ -126,5 +124,23 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         log.info("Стоимость доставки для заказа {}: {}", orderDto.getOrderId(), totalCost);
         return totalCost;
+    }
+
+    private static BigDecimal getBigDecimal(String warehouseAddress, BigDecimal BASE_RATE) {
+        final String ADDRESS_1 = "ADDRESS_1";
+        final String ADDRESS_2 = "ADDRESS_2";
+
+
+        BigDecimal warehouseMultiplier = BigDecimal.ZERO;
+
+        if (warehouseAddress.contains(ADDRESS_1)) {
+            warehouseMultiplier = warehouseMultiplier.add(BigDecimal.ONE);
+        }
+
+        if (warehouseAddress.contains(ADDRESS_2)) {
+            warehouseMultiplier = warehouseMultiplier.add(BigDecimal.valueOf(2));
+        }
+
+        return BASE_RATE.multiply(warehouseMultiplier).add(BASE_RATE);
     }
 }

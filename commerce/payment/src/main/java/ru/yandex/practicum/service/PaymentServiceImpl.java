@@ -8,6 +8,7 @@ import ru.yandex.practicum.exception.PaymentNotFoundException;
 import ru.yandex.practicum.mapper.PaymentMapper;
 import ru.yandex.practicum.modul.Payment;
 import ru.yandex.practicum.order.dto.OrderDto;
+import ru.yandex.practicum.order.feign.OrderClient;
 import ru.yandex.practicum.payment.dto.PaymentDto;
 import ru.yandex.practicum.payment.enums.PaymentState;
 import ru.yandex.practicum.repository.PaymentRepository;
@@ -25,6 +26,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
     private final ShoppingStoreClient shoppingStoreClient;
+    private final OrderClient orderClient;
 
     @Override
     public BigDecimal productCost(OrderDto orderDto) {
@@ -97,6 +99,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         payment.setState(PaymentState.SUCCESS);
         paymentRepository.save(payment);
+
+        orderClient.completed(payment.getOrderId());
     }
 
     @Override
@@ -109,5 +113,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         payment.setState(PaymentState.FAILED);
         paymentRepository.save(payment);
+
+        orderClient.paymentFailed(payment.getOrderId());
     }
 }

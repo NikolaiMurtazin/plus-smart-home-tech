@@ -39,7 +39,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID orderId;
 
+    @Column(nullable = false)
     private UUID shoppingCartId;
+
+    @Column(nullable = false)
+    private String username;
 
     @ElementCollection
     @CollectionTable(name = "order_products", joinColumns = @JoinColumn(name = "order_id"))

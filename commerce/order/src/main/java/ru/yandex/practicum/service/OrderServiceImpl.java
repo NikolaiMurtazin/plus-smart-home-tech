@@ -20,8 +20,6 @@ import ru.yandex.practicum.order.enums.OrderState;
 import ru.yandex.practicum.payment.dto.PaymentDto;
 import ru.yandex.practicum.payment.feign.PaymentClient;
 import ru.yandex.practicum.repository.OrderRepository;
-import ru.yandex.practicum.shoppingCart.dto.ShoppingCartDto;
-import ru.yandex.practicum.shoppingCart.feign.ShoppingCartClient;
 import ru.yandex.practicum.warehouse.dto.AssemblyProductForOrderFromShoppingCartRequest;
 import ru.yandex.practicum.warehouse.dto.BookedProductDto;
 import ru.yandex.practicum.warehouse.feign.WarehouseClient;
@@ -36,7 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final ShoppingCartClient shoppingCartClient;
     private final WarehouseClient warehouseClient;
     private final DeliveryClient deliveryClient;
     private final PaymentClient paymentClient;
@@ -50,9 +47,7 @@ public class OrderServiceImpl implements OrderService {
             throw new NotAuthorizedUserException("Имя пользователя не должно быть пустым");
         }
 
-        ShoppingCartDto shoppingCartDto = shoppingCartClient.getShoppingCart(username);
-
-        List<Order> orders = orderRepository.findByShoppingCartId(shoppingCartDto.getShoppingCartId());
+        List<Order> orders = orderRepository.findByUsername(username);
 
         return orders.stream()
                 .map(orderMapper::toOrderDto)
@@ -68,6 +63,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = Order.builder()
                 .shoppingCartId(shoppingCartId)
+                .username(createNewOrderRequest.getUsername())
                 .products(createNewOrderRequest.getShoppingCart().getProducts())
                 .state(OrderState.NEW)
                 .build();
@@ -140,8 +136,6 @@ public class OrderServiceImpl implements OrderService {
         order.setState(OrderState.PAYMENT_FAILED);
         orderRepository.save(order);
 
-        paymentClient.paymentFailed(orderId);
-
         return orderMapper.toOrderDto(order);
     }
 
@@ -177,8 +171,6 @@ public class OrderServiceImpl implements OrderService {
 
         order.setState(OrderState.COMPLETED);
         orderRepository.save(order);
-
-        paymentClient.paymentSuccess(orderId);
 
         return orderMapper.toOrderDto(order);
     }
